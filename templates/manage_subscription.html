@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>添加订阅 | 古诗订阅系统</title>
+{% endblock %}
+{% block myContent %}
+    <h3>点击以取消订阅</h3>
+    <div class="section">
+        <div class="card" style="max-height: 450px;">
+            <h4 class="card-header">已订阅主题</h4>
+            <input type="text" class="form-control" placeholder="Filter topics" id="topic-filter" style="margin-bottom: 0.2rem;" oninput="refreshSubList()">
+            <div style="font-weight: bold; overflow-y: scroll;">
+                <ul class="list-group list-group-flush" id="subList" style="font-size: 1rem;"></ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script>
+        var authors;
+        function refreshSubList() {
+            document.getElementById('subList').innerHTML = '';
+            var key = $('#topic-filter').val();
+            for(const author of authors) if(key=='' || author.search(key)!=-1){
+                var li = document.createElement('li');
+                li.className = 'list-group-item list-group-item-action';
+                li.innerHTML = author;
+                li.onclick = function() {
+                    $.ajax({
+                        url: "/_unsubscribe",
+                        type: "GET",
+                        data: {"sub": author},
+                        success: function (result) {
+                            const fa = document.getElementById('subList');
+                            for(const x of fa.childNodes){
+                                if(x.innerHTML === author){
+                                    fa.removeChild(x);
+                                    break;
+                                }
+                            }
+                            for(var i = 0; i<authors.length; ++i){
+                                if(authors[i] === author){
+                                    authors.splice(i, 1);
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                };
+                document.getElementById('subList').appendChild(li);
+            }
+        }
+        window.onload = function () {
+            document.getElementById('nav-sub').classList.add("active");
+            $.ajax({
+                url: "/_get_subList",
+                type: "GET",
+                success: function (result) {
+                    authors = result.subList;
+                    refreshSubList();
+                }
+            });
+        };
+    </script>
+{% endblock %}

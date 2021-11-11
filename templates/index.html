@@ -1,0 +1,132 @@
+{% from 'bootstrap/table.html' import render_table %}
+
+{% extends "base.html" %}
+{% block title %}
+    <title>首页 | 古诗订阅系统</title>
+{% endblock %}
+{% block myContent %}
+    <div class="form-group">
+        <h3>添加订阅</h3>
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="请输入用空格分隔的作者和关键词信息（如果有作者请置于首位）" id="sub" aria-describedby="button-submit">
+            <button class="btn btn-primary" type="button" id="button-submit" onclick="submitSub()">提交</button>
+        </div>
+        <div class="invalid-feedback" id="feedback" style="display: none;"></div>
+    </div>
+    <div class="section">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card mb-3" style="max-height: 450px;">
+                    <h4 class="card-header">已订阅主题</h4>
+                    <input type="text" class="form-control" placeholder="Filter topics" id="topic-filter" style="margin-bottom: 0.2rem;" oninput="refreshSubList()">
+                    <div style="font-weight: bold; overflow-y: scroll;">
+                        <ul class="list-group list-group-flush" id="subList" style="font-size: 1rem;"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card mb-3" style="max-height: 450px;">
+                    <h4 class="card-header" id="author-header">请选择诗人</h4>
+                    <div style="font-weight: bold; overflow-y: scroll;">
+                        <ul class="list-group list-group-flush" id="poem-list"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card mb-3">
+                    <h4 class="card-header" id="poem-title">请选择诗</h4>
+                    <div class="card-body">
+                        <p id="note"></p>
+                        <p id="author" style="font-weight: bold;"></p>
+                        <div id="poem"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script>
+        function submitSub() {
+            $.ajax({
+                url: "/_submit_subscription",
+                type: "POST",
+                data: {"sub": $('#sub').val()},
+                success: function (result) {
+                    if(result.success){
+                        $('#sub').removeClass('is-invalid');
+                        $('#sub').addClass('is-valid');
+                        location.reload();
+                    }
+                    else{
+                        $('#sub').removeClass('is-valid');
+                        $('#sub').addClass('is-invalid');
+                        document.getElementById('feedback').style.display = 'initial';
+                        document.getElementById('feedback').innerHTML = result.message;
+                    }
+                }
+            });
+        }
+        function updatePoem(poem, keywords) {
+            document.getElementById('poem-title').innerText = poem.title;
+            document.getElementById('note').innerText = poem.note;
+            if(poem.note)
+                document.getElementById('note').style.display = 'initial';
+            else
+                document.getElementById('note').style.display = 'none';
+            document.getElementById('author').innerText = poem.author;
+            document.getElementById('poem').innerHTML = "";
+            for(var line of poem.content){
+                var p = document.createElement('p');
+                p.innerHTML = line.replace(new RegExp(keywords.join('|'), 'g'), '<span class="highlight">$&</span>');
+                document.getElementById('poem').appendChild(p);
+            }
+        }
+        function updatePoems() {
+            var cur_author = this.innerHTML;
+            $.ajax({
+                url: "/_get_poems_by_sub",
+                type: "GET",
+                data: {"sub": cur_author},
+                success: function (result) {
+                    document.getElementById('author-header').innerHTML = '关于「' + cur_author + '」的诗';
+                    document.getElementById('poem-list').innerHTML = "";
+                    for(const poem of result.poems){
+                        var li = document.createElement('li');
+                        li.className = 'list-group-item list-group-item-action';
+                        li.innerHTML = poem.title;
+                        li.onclick = function() {
+                            updatePoem(poem, result.keywords);
+                        }
+                        document.getElementById('poem-list').appendChild(li);
+                    }
+                }
+            });
+        }
+
+        var authors;
+        function refreshSubList() {
+            document.getElementById('subList').innerHTML = '';
+            var key = $('#topic-filter').val();
+            for(const author of authors) if(key=='' || author.search(key)!=-1){
+                var li = document.createElement('li');
+                li.className = 'list-group-item list-group-item-action';
+                li.innerHTML = author;
+                li.onclick = updatePoems;
+                document.getElementById('subList').appendChild(li);
+            }
+        }
+        window.onload = function () {
+            document.getElementById('nav-root').classList.add("active");
+            $.ajax({
+                url: "/_get_subList",
+                type: "GET",
+                success: function (result) {
+                    authors = result.subList;
+                    refreshSubList();
+                }
+            });
+        };
+    </script>
+{% endblock %}

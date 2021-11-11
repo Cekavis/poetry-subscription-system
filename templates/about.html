@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}
+<title>关于 | 古诗订阅系统</title>
+{% endblock %}
+{% block styles %}
+    <style>
+        h2 {
+            margin-top: 3rem !important;
+        }
+        h4 {
+            margin-top: 2rem !important;
+        }
+        .pic {
+            border-radius: 1rem !important;
+            max-width: 80% !important;
+        }
+    </style>
+    {{ super() }}
+{% endblock %}
+{% block myContent %}
+    <h1>关于本项目</h1>
+        <h2>实验环境</h2>
+            <h4>主要环境</h4>
+                <p>Python Flask, Bootstrap-Flask, Scikit-learn, NumPy, pickle 库</p>
+            <h4>其他</h4>
+                <p>Python webbrowser, re, math, os 库</p>
+        <h2>文件说明</h2>
+            <h4>app.py</h4>
+                <p>主程序</p>
+            <h4>analyze.ipynb</h4>
+                <p>用于算法部分的实现以及测试的临时文件</p>
+            <h4>tf-idf.txt</h4>
+                <p>词、诗的tf-idf向量降维后的数据</p>
+            <h4>poems.txt, wordlist.txt</h4>
+                <p>下发的诗、词文件</p>
+            <h4>data</h4>
+                <p>缓存的 tf-idf 向量以及 PCA 模型等，用于快速启动</p>
+            <h4>templates/*, static/*</h4>
+                <p>Web服务相关文件（包括 GUI 截图）</p>
+        <h2>基本要求完成情况</h2>
+            <h4>tf-idf 以及近义词挖掘算法描述</h4>
+                <p>设有 \( m \) 个词，\( n \) 首诗，这里只考虑在已知词表中且实际出现次数至少为 \( 10 \) 的词。用 \( {\rm tfidf}_{i,j} \) 表示词 \( i \) 关于诗 \( j \) 的 tf-idf 值。（具体算法待补充）</p>
+                <p>设 \( \mathbf{t}_i \) 为将向量 \( \begin{pmatrix} {\rm tfidf}_{i,1} & {\rm tfidf}_{i,2} & \cdots & {\rm tfidf}_{i,n}\end{pmatrix}\) 单位化的结果， \( \mathbf{\hat t}_i\) 表示将所有 \( \mathbf{t}_i \) 使用 PCA 方法降至 \( 500 \) 维的结果。同样地，将对应关系倒转，可以得到诗的向量 \( \mathbf{d}_j \) 以及对应的降到 \( 500 \) 维的向量 \( \mathbf{\hat d}_j \)。</p>
+                <p>令 \( {\rm dis}_{x,y} = \frac{\mathbf{t}_x \mathbf{t}_y^T}{\max_{z \in D} \mathbf{t}_x \mathbf{t}_z^T} \)，其中 \( D \) 是所有诗的集合。一个词 \( x \) 的近义词就是使 \( {\rm dis}_{x,y} \) 最大的 \( 20 \) 个词 \( y \)（包含自身）。</p>
+            <h4>诗的查找算法描述</h4>
+                <p>将一首诗抽象为一些词的可重集合，将该集合的每个词在关键词的近义词集合里查找最大的相关性，即上述的 \( {\rm dis} \)，全部累加即为这首诗的权重。选取权重最高的二十首诗作为查找结果。</p>
+            <h4>GUI 截图</h4>
+                <center>
+                    <img src="/static/Screenshot-1.png" class="pic img-fluid" style="border-style: double;">
+                    <p>1. 首页</p>
+                    <img src="/static/Screenshot-2.png" class="pic img-fluid" style="border-style: double;">
+                    <p>2. 分类页</p>
+                    <img src="/static/Screenshot-3.png" class="pic img-fluid" style="border-style: double;">
+                    <p>3. 订阅管理页</p>
+                </center>
+        <h2>关键词扩展前后对比分析</h2>
+            <h4>不使用近义词扩展</h4>
+                <div class="row">
+                    <div class="col-lg-3">
+                        <img src="/static/algo-3-1.png">
+                        <p>排名为 1 的诗</p>
+                    </div>
+                    <div class="col-lg-3">
+                        <img src="/static/algo-3-2.png">
+                        <p>排名为 2 的诗</p>
+                    </div>
+                    <div class="col-lg-3">
+                        <img src="/static/algo-3-19.png">
+                        <p>排名为 19 的诗</p>
+                    </div>
+                    <div class="col-lg-3">
+                        <img src="/static/algo-3-20.png">
+                        <p>排名为 20 的诗</p>
+                    </div>
+                </div>
+            <h4>最终算法</h4>
+                <div class="row">
+                    <div class="col-lg-3">
+                        <img src="/static/algo-2-1.png">
+                        <p>排名为 1 的诗</p>
+                    </div>
+                    <div class="col-lg-3">
+                        <img src="/static/algo-2-2.png">
+                        <p>排名为 2 的诗</p>
+                    </div>
+                    <div class="col-lg-3">
+                        <img src="/static/algo-2-19.png">
+                        <p>排名为 19 的诗</p>
+                    </div>
+                    <div class="col-lg-3">
+                        <img src="/static/algo-2-20.png">
+                        <p>排名为 20 的诗</p>
+                    </div>
+                </div>
+            <h4>比较</h4>
+                <p>可以发现近义词算法相对直接的匹配算法有一定提升。</p>
+        <h2>加分项完成情况</h2>
+            <ul>
+                <li>使用网络通讯实现了 B/S 架构，在当前数据集上没有并发需求。</li>
+                <li>借助主观方法对诗歌主题进行了分类。</li>
+                <li>*使用优秀的前端设计实现了人性化的交互操作以及赏心悦目的交互体验。</li>
+            </ul>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.onload = function () {
+            document.getElementById('nav-about').classList.add("active");
+        };
+    </script>
+{% endblock %}
