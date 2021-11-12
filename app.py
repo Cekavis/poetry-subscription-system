@@ -12,7 +12,7 @@ import pickle
 # Parse poems from file
 def get_poems():
     poems = {}
-    with open('poems.txt', 'r') as f:
+    with open('poems.txt', 'r', encoding='utf-8') as f:
         poem = {'content': []}
         for l in f.readlines():
             l = l.split(' ')
@@ -45,7 +45,7 @@ poems['all'] = [x for y in poems.values() for x in y]
 
 # Parse words from file
 words = []
-with open('wordlist.txt', 'r') as f:
+with open('wordlist.txt', 'r', encoding='utf-8') as f:
     words = [w.strip() for w in f.readlines()]
 
 # Cache
@@ -244,5 +244,5 @@ def _get_poems_by_sub():
     return {'poems': poems, 'keywords': keywords}
 
 
-webbrowser.open('http://localhost:8080')
-app.run(port=8080)
+webbrowser.open('http://localhost:11451')
+app.run(port=11451)
